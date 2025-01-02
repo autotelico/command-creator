@@ -5,6 +5,9 @@
 import os, subprocess, getpass, pyuac, winreg as reg
 from pyuac import main_requires_admin
 
+# Types
+from typing import List
+
 @main_requires_admin
 def main():
     def create_script(script_name: str = None, code: str = None) -> None:
@@ -23,26 +26,16 @@ def main():
         if (os.path.isdir(cc_bin_dir) == False):
             os.mkdir(cc_bin_dir)
 
-        path_env_var = os.environ['Path'].split(';')
-        path_exists = False
+        path_env_var: List[str] = os.environ['Path'].split(';')
 
-        for path in path_env_var:
-            if path == cc_bin_dir:
-                path_exists = True
-        
-        # print(path_env_var)
-        # print(cc_bin_dir in path_env_var)
-        all_paths = os.pathsep.join(path_env_var)
-        all_paths += os.pathsep + cc_bin_dir
-        # print(all_paths)
+        if (cc_bin_dir not in path_env_var):
+            all_paths = os.pathsep.join(path_env_var)
+            all_paths += os.pathsep + cc_bin_dir
+            os.system(f'SETX /M Path "{all_paths}" & timeout 5')
 
-        os.system(f'SETX /M testvar "{all_paths}" & timeout 5')
+        os.system(f"""cd {cc_bin_dir} & {code} > {script_name}.bat""")
 
-        # if not path_exists:
-            # reg.OpenKey(reg.HKEY_LOCAL_MACHINE, r"Environment")
-        
-
-    create_script('testsy', "echo testsy")
+    create_script('testme', 'echo "testsy"')
 
 if __name__ == '__main__':
     if not pyuac.isUserAdmin():
