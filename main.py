@@ -8,23 +8,31 @@ from pyuac import main_requires_admin
 # Types
 from typing import List
 
-@main_requires_admin
-def main():
-    def create_script(script_name: str = None, code: str = None) -> None:
+if not pyuac.isUserAdmin():
+    print("Re-launching as admin!")
+    pyuac.runAsAdmin()   
+
+else:
+    # Set paths to directories
+    user_dir = f'C:\\Users\\{getpass.getuser()}'
+    custom_commands_dir = f"{user_dir}\\.custom-commands"
+    cc_bin_dir = f"{custom_commands_dir}\\bin"
+
+    # Check if directories exist. If not, create them
+    if (os.path.isdir(custom_commands_dir) == False):
+        os.mkdir(custom_commands_dir)
+    if (os.path.isdir(cc_bin_dir) == False):
+        os.mkdir(cc_bin_dir)
+
+    def create_command(cmd_name: str = None, code: str = None) -> None:
         """
-            Create a script with the content you want inside of it. The
+            Create a script with the content you want inside of it. You may call
+            the command from the Command Prompt by typing the command name into it from
+            anywhere in your computer.
         """
 
-        # Set paths to directories
-        user_dir = f'C:\\Users\\{getpass.getuser()}'
-        custom_commands_dir = f"{user_dir}\\.custom-commands"
-        cc_bin_dir = f"{custom_commands_dir}\\bin"
-
-        # Check if directories exist. If not, create them
-        if (os.path.isdir(custom_commands_dir) == False):
-            os.mkdir(custom_commands_dir)
-        if (os.path.isdir(cc_bin_dir) == False):
-            os.mkdir(cc_bin_dir)
+        if cmd_name == None:
+            raise Exception("No command name provided")
 
         path_env_var: List[str] = os.environ['Path'].split(';')
 
@@ -33,13 +41,11 @@ def main():
             all_paths += os.pathsep + cc_bin_dir
             os.system(f'SETX /M Path "{all_paths}" & timeout 5')
 
-        os.system(f"""cd {cc_bin_dir} & {code} > {script_name}.bat""")
+        os.system(f"""cd {cc_bin_dir} & echo {code} > {cmd_name}.bat""")
 
-    create_script('testme', 'echo "testsy"')
+    def delete_command(cmd_name: str):
+        os.system(f"cd {cc_bin_dir} & del {cmd_name}.bat")
 
-if __name__ == '__main__':
-    if not pyuac.isUserAdmin():
-        print("Re-launching as admin!")
-        pyuac.runAsAdmin()
-    else:        
-        main() 
+    delete_command('np')
+
+    
